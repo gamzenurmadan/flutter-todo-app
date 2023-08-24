@@ -22,7 +22,13 @@ class ToDoApp extends StatelessWidget {
 }
 
 class ToDo {
-  ToDo({required this.name, required this.completeStatus});
+  ToDo({
+    required this.id,
+    required this.name,
+    required this.completeStatus,
+  });
+
+  final int id;
   String name;
   bool completeStatus;
 }
@@ -38,24 +44,27 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final List<ToDo> _todos = [];
+  int _idCounter = 0;
   final TextEditingController _textFieldController = TextEditingController();
 
   void _addTodoItem(String name) {
     setState(() {
-      _todos.add(ToDo(name: name, completeStatus: false));
+      _idCounter++;
+      _todos.add(ToDo(id: _idCounter, name: name, completeStatus: false));
     });
     _textFieldController.clear();
   }
 
-  void _handleTodoChange(ToDo todo) {
+  void _handleTodoChange(int id) {
     setState(() {
+      final todo = _todos.firstWhere((element) => element.id == id);
       todo.completeStatus = !todo.completeStatus;
     });
   }
 
-  void _deleteToDo(ToDo todo) {
+  void _deleteToDo(int id) {
     setState(() {
-      _todos.removeWhere((element) => element.name == todo.name);
+      _todos.removeWhere((element) => element.id == id);
     });
   }
 
@@ -105,11 +114,10 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
-        title: Text(widget.title,
-        style: TextStyle(
-          fontSize: 24,
-            fontWeight: FontWeight.bold
-        ),)
+        title: Text(
+          widget.title,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -119,39 +127,41 @@ class HomePageState extends State<HomePage> {
             colors: [Colors.white70, Colors.white12],
           ),
         ),
-        child: ListView(
+        child: ListView.builder(
           padding: const EdgeInsets.all(16.0),
-          children: _todos.map((todo) {
+          itemCount: _todos.length,
+          itemBuilder: (context, index) {
+            final todo = _todos[index];
             return Card(
               elevation: 4,
               child: ListTile(
-                onTap: () => _handleTodoChange(todo),
-            leading: Checkbox(
-            checkColor: Colors.greenAccent,
-            activeColor: Colors.red,
-            value: todo.completeStatus,
-            onChanged: (_) => _handleTodoChange(todo),
-            ),
-            title: Text(
-            todo.name,
-            style: TextStyle(
-            fontSize: 18,
-            decoration: todo.completeStatus
-            ? TextDecoration.lineThrough
-                : TextDecoration.none,
-            color: todo.completeStatus ? Colors.black54 : Colors.black,
-            ),
-            ),
-            trailing: IconButton(
-            icon: Icon(
-            Icons.delete,
-            color: Colors.red,
-            ),
-            onPressed: () => _deleteToDo(todo),
+                onTap: () => _handleTodoChange(todo.id),
+                leading: Checkbox(
+                  checkColor: Colors.greenAccent,
+                  activeColor: Colors.red,
+                  value: todo.completeStatus,
+                  onChanged: (_) => _handleTodoChange(todo.id),
+                ),
+                title: Text(
+                  todo.name,
+                  style: TextStyle(
+                    fontSize: 18,
+                    decoration: todo.completeStatus
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                    color: todo.completeStatus ? Colors.black54 : Colors.black,
+                  ),
+                ),
+                trailing: IconButton(
+                  icon: Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                  ),
+                  onPressed: () => _deleteToDo(todo.id),
+                ),
               ),
-            ),
             );
-          }).toList(),
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -159,60 +169,6 @@ class HomePageState extends State<HomePage> {
         tooltip: 'Add ToDo',
         backgroundColor: Colors.white70,
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-class TodoItem extends StatelessWidget {
-  const TodoItem({
-    Key? key,
-    required this.todo,
-    required this.onToDoChange,
-    required this.onRemoveTodo,
-  }) : super(key: key);
-
-  final ToDo todo;
-  final void Function(ToDo todo) onToDoChange;
-  final void Function(ToDo todo) onRemoveTodo;
-
-  TextStyle? _getTextStyle(bool checked) {
-    return checked
-        ? const TextStyle(
-      color: Colors.black54,
-      decoration: TextDecoration.lineThrough,
-    )
-        : null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: () => onToDoChange(todo),
-      leading: Checkbox(
-        checkColor: Colors.greenAccent,
-        activeColor: Colors.red,
-        value: todo.completeStatus,
-        onChanged: (_) => onToDoChange(todo),
-      ),
-      title: Row(
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              todo.name,
-              style: _getTextStyle(todo.completeStatus),
-            ),
-          ),
-          IconButton(
-            iconSize: 30,
-            icon: const Icon(
-              Icons.delete,
-              color: Colors.red,
-            ),
-            alignment: Alignment.centerRight,
-            onPressed: () => onRemoveTodo(todo),
-          ),
-        ],
       ),
     );
   }
