@@ -56,8 +56,8 @@ class HomePageState extends State<HomePage> {
   }
 
   void _handleTodoChange(int id) {
+    final todo = _todos.firstWhere((element) => element.id == id);
     setState(() {
-      final todo = _todos.firstWhere((element) => element.id == id);
       todo.completeStatus = !todo.completeStatus;
     });
   }
@@ -66,6 +66,42 @@ class HomePageState extends State<HomePage> {
     setState(() {
       _todos.removeWhere((element) => element.id == id);
     });
+  }
+
+  void _editToDo(ToDo todo) async {
+    final editedName = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        final TextEditingController editController =
+        TextEditingController(text: todo.name);
+
+        return AlertDialog(
+          title: const Text('Edit ToDo'),
+          content: TextField(
+            controller: editController,
+            decoration: const InputDecoration(hintText: 'Edit your ToDo'),
+          ),
+          actions: <Widget>[
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(editController.text);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (editedName != null) {
+      setState(() {
+        todo.name = editedName;
+      });
+    }
   }
 
   Future<void> _displayDialog() async {
@@ -120,7 +156,7 @@ class HomePageState extends State<HomePage> {
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -158,13 +194,25 @@ class HomePageState extends State<HomePage> {
                     color: todo.completeStatus ? Colors.black54 : Colors.black,
                   ),
                 ),
-                trailing: IconButton(
-                  icon: Icon(
-                    Icons.delete,
-                    color: Colors.red,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                      Icons.edit,
+                      color: Colors.amberAccent,
+                ),
+                    onPressed: () => _editToDo(todo),
+                ),
+                    IconButton(
+                      icon: Icon(
+                      Icons.delete,
+                      color: Colors.red,
                   ),
                   onPressed: () => _deleteToDo(todo.id),
                 ),
+              ],
+              ),
               ),
             );
           },
