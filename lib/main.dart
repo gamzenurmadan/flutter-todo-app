@@ -127,7 +127,13 @@ class HomePageState extends State<HomePage> {
             colors: [Colors.white70, Colors.white12],
           ),
         ),
-        child: ListView.builder(
+        child: _todos.isEmpty ?
+            const Center(
+              child: Text('No todo exists right now.\nPlease create one and track your work!',
+                style: TextStyle(fontSize: 18, color: Colors.black54),
+                textAlign: TextAlign.center,),
+            )
+        :ListView.builder(
           padding: const EdgeInsets.all(16.0),
           itemCount: _todos.length,
           itemBuilder: (context, index) {
